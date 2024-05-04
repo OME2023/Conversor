@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Word Converter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">PDF to Word Converter</h1>
+        <form method="POST" enctype="multipart/form-data" class="my-4">
+            <div class="mb-3">
+                <label for="file" class="form-label">Seleccione el archivo PDF:</label>
+                <input class="form-control" type="file" id="file" name="file">
+            </div>
+            <button type="submit" class="btn btn-primary">Convertir</button>
+        </form>
+        <h2 class="mt-5">Archivos convertidos:</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tamaño</th>
+                    <th>Extensión</th>
+                    <th>Fecha de Conversión</th>
+                    <th>Descargar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>{{ file.name }}</td>
+                    <td>{{ file.size }}</td>
+                    <td>{{ file.extension }}</td>
+                    <td>{{ file.date }}</td>
+                    <td><a href="{{ url_for('download_file', filename=file.name) }}">Descargar</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
