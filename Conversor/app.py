@@ -4,13 +4,14 @@ import os
 import shutil
 from pdf2docx import Converter
 from datetime import datetime
+import docx
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
 
 UPLOAD_FOLDER = 'in'
 CONVERTED_FOLDER = 'out/convertidos'
-ALLOWED_EXTENSIONS = {'pdf'}
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['CONVERTED_FOLDER'] = CONVERTED_FOLDER
@@ -22,6 +23,22 @@ def convert_pdf_to_word(pdf_path, output_folder):
     cv = Converter(pdf_path)
     cv.convert(output_path)
     cv.close()
+    return output_path
+
+def convert_pdf_to_doc(pdf_path, output_folder):
+    file_name = os.path.splitext(os.path.basename(pdf_path))[0]
+    output_path = os.path.join(output_folder, f"{file_name}.doc")
+    
+    # Convertir PDF a DOCX primero
+    docx_path = convert_pdf_to_word(pdf_path, output_folder)
+    
+    # Luego, convertir DOCX a DOC
+    doc = docx.Document(docx_path)
+    doc.save(output_path)
+    
+    # Eliminar el archivo DOCX temporal
+    os.remove(docx_path)
+    
     return output_path
 
 def allowed_file(filename):
@@ -50,8 +67,12 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = file.filename
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            converted_file_path = convert_pdf_to_word(os.path.join(app.config['UPLOAD_FOLDER'], filename), app.config['CONVERTED_FOLDER'])
-            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))  # Remove original PDF
+            if filename.endswith('.pdf'):
+                converted_file_path = convert_pdf_to_word(os.path.join(app.config['UPLOAD_FOLDER'], filename), app.config['CONVERTED_FOLDER'])
+            elif filename.endswith('.doc'):
+                converted_file_path = os.path.join(app.config['CONVERTED_FOLDER'], filename)
+            elif filename.endswith('.docx'):
+                shutil.move(os.path.join(app.config['UPLOAD_FOLDER'], filename), os.path.join(app.config['CONVERTED_FOLDER'], filename))
             return redirect(url_for('upload_file'))
     files = os.listdir(CONVERTED_FOLDER)
     converted_files = [get_file_data(f, os.path.join(CONVERTED_FOLDER, f)) for f in files]
